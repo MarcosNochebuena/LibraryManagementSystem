@@ -72,12 +72,12 @@ export class Loan {
     this.borrow_date = borrow_date;
   }
 
-  public setReturnDate(return_date: Date): void {
-    this.book.returned();
+public setReturnDate(return_date: Date): void {
     if (return_date === null || return_date === undefined || return_date < this.borrow_date) {
       throw new Error("Invalid return date");
     }
     this.return_date = return_date;
-  }
+    this.book.return();
+}
 
 }
