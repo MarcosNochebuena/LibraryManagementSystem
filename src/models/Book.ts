@@ -1,6 +1,7 @@
 import { IsString, IsNotEmpty, IsBoolean } from "class-validator";
+import { ILoanable } from "../interfaces/ILoanable";
 
-export class Book {
+export class Book implements ILoanable{
   private readonly id: string;
   @IsString()
   @IsNotEmpty()
@@ -15,7 +16,7 @@ export class Book {
   private isbn: string;
 
   @IsBoolean()
-  private isAvailable: boolean;
+  public isAvailable: boolean;
 
   constructor(
     title: string,
@@ -42,7 +43,7 @@ export class Book {
     this.isAvailable = false;
   }
 
-  public returned(): void {
+  public return(): void {
     this.isAvailable = true;
   }
 
