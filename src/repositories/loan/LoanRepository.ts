@@ -31,7 +31,7 @@ export class LoanRepository implements ILoanRepository{
    * @param {string | number} id - Identificador único del préstamo a actualizar.
    * @returns {Promise<void>} Una promesa que se resuelve cuando la operación ha finalizado.
    */
-  public update(id: string | number): Promise<void> {
+  public update(id: string | number, loan: Loan): Promise<void> {
     // Implementation for updating a loan
     console.log("Actualizando loan con el id:", id);
     return Promise.resolve();

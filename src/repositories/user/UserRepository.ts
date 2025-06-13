@@ -30,7 +30,7 @@ export class UserRepository implements IUserRepository {
    * @param {string | number} id - Identificador único del usuario a actualizar.
    * @returns {Promise<void>} Una promesa que se resuelve cuando la operación ha finalizado.
    */
-  public update(id: string | number): Promise<void> {
+  public update(id: string | number, user: User): Promise<void> {
     console.log("Actualizando usuario con el id:", id);
     // Implementation for updating a user
     return Promise.resolve();

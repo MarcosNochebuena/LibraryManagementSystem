@@ -1,12 +1,14 @@
-import { IsString, IsNotEmpty, IsEmail, IsBoolean } from "class-validator";
+import { IsString, IsNotEmpty, IsEmail, IsBoolean, MinLength } from "class-validator";
 
 export class User {
   private readonly id: string;
   @IsString()
   @IsNotEmpty()
+  @MinLength(3)
   private name: string;
   @IsEmail()
   @IsNotEmpty()
+  @MinLength(3)
   private email: string;
   @IsBoolean()
   @IsNotEmpty()
@@ -17,8 +19,6 @@ export class User {
     this.name = name;
     this.email = email;
     this.borrowed_books = borrowed_books;
-    this.validateName();
-    this.validateEmail();
   }
 
   public toggleBorrowedBooks(): void {
@@ -28,15 +28,15 @@ export class User {
   /**
    * validateName
    */
-  public validateName(): void {
-    if (!this.name || this.name.trim().length < 2) {
-      throw new Error('Name must be at least 2 characters long.');
+  public validateName(name: string): void {
+    if (!name || name.trim().length < 3) {
+      throw new Error('Name must be at least 3 characters long.');
     }
   }
 
-  public validateEmail(): void {
-    if (!this.email || this.email.trim().length < 2) {
-      throw new Error('Email must be at least 2 characters long.');
+  public validateEmail(email: string): void {
+    if (!email || email.trim().length < 3) {
+      throw new Error('Email must be at least 3 characters long.');
     }
   }
 
@@ -70,7 +70,7 @@ export class User {
   }
 
   public setName(name: string): void {
-    this.validateName();
+    this.validateName(name);
     this.name = name;
   }
 
@@ -78,7 +78,7 @@ export class User {
    * setEmail
    */
   public setEmail(email: string): void {
-    this.validateEmail();
+    this.validateEmail(email);
     this.email = email;
   }
 

@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsBoolean } from "class-validator";
+import { IsString, IsNotEmpty, IsBoolean, Matches } from "class-validator";
 import { ILoanable } from "../interfaces/ILoanable";
 
 export class Book implements ILoanable{
@@ -13,6 +13,7 @@ export class Book implements ILoanable{
 
   @IsString()
   @IsNotEmpty()
+  @Matches(/^(97(8|9))?\d{9}(\d|X)$/, { message: "ISBN inválido" })
   private isbn: string;
 
   @IsBoolean()
@@ -27,7 +28,6 @@ export class Book implements ILoanable{
     this.id = crypto.randomUUID();
     this.title = title;
     this.author = author;
-    this.validateIsbn(isbn);
     this.isbn = isbn;
     this.isAvailable = isAvailable;
   }
@@ -66,12 +66,6 @@ export class Book implements ILoanable{
   }
 
   /* Setters and getters */
-
-  public validateIsbn(isbn?: string): boolean {
-    const isbnPattern = /^(97(8|9))?\d{9}(\d|X)$/;
-    return isbnPattern.test(isbn || this.isbn);
-  }
-
   public getId(): string {
     return this.id;
   }
@@ -100,7 +94,8 @@ export class Book implements ILoanable{
   }
 
   public setIsbn(isbn: string): void {
-    if (!this.validateIsbn(isbn)) {
+    const isbnPattern = /^(97(8|9))?\d{9}(\d|X)$/;
+    if (!isbnPattern.test(isbn)) {
       throw new Error("ISBN inválido");
     }
     this.isbn = isbn;
