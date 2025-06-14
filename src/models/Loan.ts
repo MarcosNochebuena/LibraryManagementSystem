@@ -1,18 +1,27 @@
 import { User } from "./User";
 import { Book } from "./Book";
 import { IsDate, IsNotEmpty } from "class-validator";
+import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Column } from "typeorm";
 
+@Entity()
 export class Loan {
+  @PrimaryGeneratedColumn('uuid')
   private readonly id: string;
+  @ManyToOne(() => Book, book => book.loans, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'book_id' })
   @IsNotEmpty()
-  private book: Book;
+  public book: Book;
+  @ManyToOne(() => User, user => user.loans, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
   @IsNotEmpty()
-  private user: User;
+  public user: User;
+  @Column({ type: 'timestamp' })
   @IsDate()
   @IsNotEmpty()
-  private borrow_date: Date;
+  public borrow_date: Date;
+  @Column({ type: 'timestamp', nullable: true })
   @IsDate()
-  private return_date: Date | null;
+  public return_date: Date | null;
 
   constructor(book: Book, user: User, borrow_date: Date, return_date?: Date) {
     this.id = crypto.randomUUID();
@@ -20,8 +29,8 @@ export class Loan {
     this.user = user;
     this.borrow_date = borrow_date;
     this.return_date = return_date || null;
-    this.book.borrow();
-    this.user.toggleBorrowedBooks();
+    // this.book.borrow();
+    // this.user.toggleBorrowedBooks();
   }
 
   public toString(): string {

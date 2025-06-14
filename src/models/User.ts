@@ -1,24 +1,33 @@
 import { IsString, IsNotEmpty, IsEmail, IsBoolean } from "class-validator";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
+import { Loan } from "./Loan";
 
+@Entity()
 export class User {
+  @PrimaryGeneratedColumn('uuid')
   private readonly id: string;
+  @Column({ type: 'varchar', length: 255 })
   @IsString()
   @IsNotEmpty()
   private name: string;
+  @Column({ type: 'varchar', length: 255, unique: true })
   @IsEmail()
   @IsNotEmpty()
   private email: string;
+  @Column({ type: 'boolean', default: false })
   @IsBoolean()
-  @IsNotEmpty()
   private borrowed_books: boolean;
+
+  @OneToMany(() => Loan, loan => loan.user)
+  public loans!: Loan[];
 
   constructor(name: string, email: string, borrowed_books: boolean = false) {
     this.id = crypto.randomUUID();
     this.name = name;
     this.email = email;
     this.borrowed_books = borrowed_books;
-    this.validateName();
-    this.validateEmail();
+    // this.validateName();
+    // this.validateEmail();
   }
 
   public toggleBorrowedBooks(): void {

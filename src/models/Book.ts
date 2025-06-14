@@ -1,22 +1,33 @@
 import { IsString, IsNotEmpty, IsBoolean } from "class-validator";
 import { ILoanable } from "../interfaces/ILoanable";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
+import { Loan } from "./Loan";
 
-export class Book implements ILoanable{
-  private readonly id: string;
+@Entity()
+export class Book implements ILoanable {
+  @PrimaryGeneratedColumn('uuid')
+  public readonly id: string;
+  @Column({ type: 'varchar', length: 255 })
   @IsString()
   @IsNotEmpty()
   private title: string;
 
+  @Column({ type: 'varchar', length: 255 })
   @IsString()
   @IsNotEmpty()
   private author: string;
 
+  @Column({ type: 'varchar', length: 20, unique: true })
   @IsString()
   @IsNotEmpty()
   private isbn: string;
 
+  @Column({ type: 'boolean', default: true })
   @IsBoolean()
   public isAvailable: boolean;
+
+  @OneToMany(() => Loan, loan => loan.book)
+  public loans!: Loan[];
 
   constructor(
     title: string,
