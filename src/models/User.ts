@@ -5,15 +5,15 @@ import { Loan } from "./Loan";
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  private readonly id: string;
+  public readonly id: string;
   @Column({ type: 'varchar', length: 255 })
   @IsString()
   @IsNotEmpty()
-  private name: string;
+  public name: string;
   @Column({ type: 'varchar', length: 255, unique: true })
   @IsEmail()
   @IsNotEmpty()
-  private email: string;
+  public email: string;
   @Column({ type: 'boolean', default: false })
   @IsBoolean()
   private borrowed_books: boolean;

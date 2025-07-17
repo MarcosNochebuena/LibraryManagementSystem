@@ -1,17 +1,17 @@
-import { Connection } from "mysql2/promise";
-import { DatabaseConnection } from "../../config/DatabaseConnection";
-import { Book } from "../../models/Book";
 import { Loan } from "../../models/Loan";
-import { User } from "../../models/User";
 import { ILoanRepository } from "./ILoanRepository";
+import { Repository } from "typeorm";
+import { AppDataSource } from "../../config/AppDataSource";
 
 export class LoanRepository implements ILoanRepository{
-  private connection: Connection | null;
+  private connection: AppDataSource | null;
+  private repository: Repository<Loan>;
   /**
    * Inicializa una nueva instancia del repositorio de préstamos y establece la conexión a la base de datos.
    */
   constructor(){
-    this.connection = DatabaseConnection.getInstance().getConnection();
+    this.connection = AppDataSource.getInstance();
+    this.repository = this.connection.getDataSource().getRepository(Loan);
   }
 
   /**
@@ -19,11 +19,11 @@ export class LoanRepository implements ILoanRepository{
    * @param {Loan} loan - El préstamo que se va a agregar.
    * @returns {Promise<void>} Una promesa que se resuelve cuando la operación ha finalizado.
    */
-  public add(loan: Loan): Promise<void> {
-    if (!this.connection) throw new Error("No hay conexión a la base de datos");
+  public async add(loan: Loan): Promise<void> {
+    this.validateConnection();
     console.log("Añadiendo loan:", loan);
     // Implementation for creating a loan
-    return Promise.resolve();
+    await this.repository.save(loan);
   }
 
   /**
@@ -31,10 +31,13 @@ export class LoanRepository implements ILoanRepository{
    * @param {string | number} id - Identificador único del préstamo a actualizar.
    * @returns {Promise<void>} Una promesa que se resuelve cuando la operación ha finalizado.
    */
-  public update(id: string | number): Promise<void> {
+  public async update(id: string, updatedLoan: Loan): Promise<void> {
+    this.validateConnection();
     // Implementation for updating a loan
     console.log("Actualizando loan con el id:", id);
-    return Promise.resolve();
+    const book = await this.getById(id);
+    if (!book) throw new Error("Loan no encontrado")
+    await this.repository.update(id, updatedLoan);
   }
 
   /**
@@ -42,21 +45,24 @@ export class LoanRepository implements ILoanRepository{
    * @param {string | number} id - Identificador único del préstamo a eliminar.
    * @returns {Promise<void>} Una promesa que se resuelve cuando la operación ha finalizado.
    */
-  public delete(id: string | number): Promise<void> {
+  public async delete(id: string ): Promise<void> {
+    this.validateConnection();
     console.log("Eliminando loan con el id:", id);
     // Implementation for deleting a loan
-    return Promise.resolve();
+    const loan = await this.getById(id);
+    if (!loan) throw new Error("Loan no encontrado");
+    await this.repository.delete(id);
   }
 
   /**
    * Recupera todos los préstamos de la base de datos.
    * @returns {Promise<Loan[]>} Una promesa que resuelve con un arreglo de todos los préstamos encontrados.
    */
-  public getAll(): Promise<Loan[]> {
+  public async getAll(): Promise<Loan[]> {
+    this.validateConnection();
     console.log("Obteniendo todos los loans");
     // Implementation for getting all loans
-    const loans: Loan[] = [];
-    return Promise.resolve(loans);
+    return await this.repository.find();
   }
 
   /**
@@ -64,11 +70,11 @@ export class LoanRepository implements ILoanRepository{
    * @param {string | number} id - Identificador único del préstamo a buscar.
    * @returns {Promise<Loan | null>} Una promesa que resuelve con el préstamo encontrado o null si no existe.
    */
-  public getById(id: string | number): Promise<Loan | null> {
+  public async getById(id: string): Promise<Loan | null> {
+    this.validateConnection();
     console.log("Obteniendo loan por ID:", id);
     // Implementation for getting a loan by ID
-    const loan = new Loan(new Book("El Principito", "Antoine de Saint-Exupéry", "978-3-16-148410-0"), new User("John Doe", "mail@mail.com"), new Date());
-    return Promise.resolve(loan);
+    return await this.repository.findOneBy({ id });
   }
 
   /**
@@ -76,11 +82,10 @@ export class LoanRepository implements ILoanRepository{
    * @param {string} userId - Identificador único del usuario.
    * @returns {Promise<Loan[]>} Una promesa que resuelve con un arreglo de préstamos realizados por el usuario.
    */
-  public findLoansByUserId(userId: string): Promise<Loan[]> {
+  public async findLoansByUserId(userId: string): Promise<Loan[]> {
     console.log("Obteniendo loans por user ID:", userId);
     // Implementation for finding loans by user ID
-    const loans: Loan[] = [];
-    return Promise.resolve(loans);
+    return await this.repository.find({ where: { userId: userId } as any });
   }
 
   /**
@@ -88,11 +93,10 @@ export class LoanRepository implements ILoanRepository{
    * @param {string} bookId - Identificador único del libro.
    * @returns {Promise<Loan[]>} Una promesa que resuelve con un arreglo de préstamos asociados al libro.
    */
-  public findLoansByBookId(bookId: string): Promise<Loan[]> {
+  public async findLoansByBookId(bookId: string): Promise<Loan[]> {
     console.log("Obteniendo loans por book ID:", bookId);
     // Implementation for finding loans by book ID
-    const loans: Loan[] = [];
-    return Promise.resolve(loans);
+    return await this.repository.find({ where: { bookId: bookId } as any });
   }
 
   /**
@@ -101,11 +105,10 @@ export class LoanRepository implements ILoanRepository{
    * @param {Date} endDate - Fecha de fin del rango.
    * @returns {Promise<Loan[]>} Una promesa que resuelve con un arreglo de préstamos en el rango de fechas.
    */
-  public findLoansByDateRange(startDate: Date, endDate: Date): Promise<Loan[]> {
+  public async findLoansByDateRange(startDate: Date, endDate: Date): Promise<Loan[]> {
     console.log("Obteniendo loans por rango de fechas:", startDate, "a", endDate);
     // Implementation for finding loans by date range
-    const loans: Loan[] = [];
-    return Promise.resolve(loans);
+    return this.repository.find({ where: { borrow_date: startDate } });
   }
 
   /**
@@ -113,11 +116,10 @@ export class LoanRepository implements ILoanRepository{
    * @param {Date} borrowDate - Fecha en la que se realizó el préstamo.
    * @returns {Promise<Loan[]>} Una promesa que resuelve con un arreglo de préstamos realizados en la fecha indicada.
    */
-  public findLoansByBorrowDate(borrowDate: Date): Promise<Loan[]> {
+  public async findLoansByBorrowDate(borrowDate: Date): Promise<Loan[]> {
     console.log("Obteniendo loans por fecha de préstamo:", borrowDate);
     // Implementation for finding loans by borrow date
-    const loans: Loan[] = [];
-    return Promise.resolve(loans);
+    return this.repository.find({ where: { borrow_date: borrowDate } });
   }
 
   /**
@@ -125,10 +127,16 @@ export class LoanRepository implements ILoanRepository{
    * @param {Date} returnDate - Fecha de devolución del préstamo.
    * @returns {Promise<Loan[]>} Una promesa que resuelve con un arreglo de préstamos devueltos en la fecha indicada.
    */
-  public findLoansByReturnDate(returnDate: Date): Promise<Loan[]> {
+  public async findLoansByReturnDate(returnDate: Date): Promise<Loan[]> {
     console.log("Obteniendo loans por fecha de devolución:", returnDate);
     // Implementation for finding loans by return date
-    const loans: Loan[] = [];
-    return Promise.resolve(loans);
+    return this.repository.find({ where: { return_date: returnDate } });
+  }
+
+  /**
+   * Valida que exista conexión a la base de datos
+   */
+  private validateConnection(){
+     if (!this.connection) throw new Error("No hay conexión a la base de datos");
   }
 }

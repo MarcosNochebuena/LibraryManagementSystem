@@ -1,16 +1,19 @@
-import { Connection } from "mysql2/promise";
-import { DatabaseConnection } from "../../config/DatabaseConnection";
+
+import { Repository } from "typeorm";
+import { AppDataSource } from "../../config/AppDataSource";
 import { User } from "../../models/User";
 import { IUserRepository } from "./IUserRepository";
 
 export class UserRepository implements IUserRepository {
-  private connection: Connection | null;
+  private connection: AppDataSource | null;
+  private repository: Repository<User>;
 
   /**
    * Inicializa una nueva instancia del repositorio de usuarios y establece la conexión a la base de datos.
    */
   constructor(){
-    this.connection = DatabaseConnection.getInstance().getConnection();
+    this.connection = AppDataSource.getInstance();
+    this.repository = this.connection.getDataSource().getRepository(User);
   }
 
   /**
@@ -18,11 +21,11 @@ export class UserRepository implements IUserRepository {
    * @param {User} user - El usuario que se va a agregar.
    * @returns {Promise<void>} Una promesa que se resuelve cuando la operación ha finalizado.
    */
-  public add(user: User): Promise<void> {
-    if (!this.connection) throw new Error("No hay conexión a la base de datos");
+  public async add(user: User): Promise<void> {
+    this.validateConnection();
     console.log("Añadiendo usuario:", user);
     // Implementation for creating a user
-    return Promise.resolve();
+    await this.repository.save(user);
   }
 
   /**
@@ -30,10 +33,12 @@ export class UserRepository implements IUserRepository {
    * @param {string | number} id - Identificador único del usuario a actualizar.
    * @returns {Promise<void>} Una promesa que se resuelve cuando la operación ha finalizado.
    */
-  public update(id: string | number): Promise<void> {
+  public async update(id: string, updatedUser: User): Promise<void> {
+    this.validateConnection();
     console.log("Actualizando usuario con el id:", id);
-    // Implementation for updating a user
-    return Promise.resolve();
+    const user = await this.getById(id);
+    if (!user) throw new Error("Usuario no encontrado");
+    await this.repository.update(id, updatedUser);
   }
 
   /**
@@ -41,21 +46,22 @@ export class UserRepository implements IUserRepository {
    * @param {string | number} id - Identificador único del usuario a eliminar.
    * @returns {Promise<void>} Una promesa que se resuelve cuando la operación ha finalizado.
    */
-  public delete(id: string | number): Promise<void> {
+  public async delete(id: string): Promise<void> {
+    this.validateConnection();
     console.log("Eliminando usuario con el id:", id);
-    // Implementation for deleting a user
-    return Promise.resolve();
+    const user = await this.getById(id);
+    if (!user) throw new Error("Usuario no encontrado");
+    await this.repository.delete(id);
   }
 
   /**
    * Recupera todos los usuarios de la base de datos.
    * @returns {Promise<User[]>} Una promesa que resuelve con un arreglo de todos los usuarios encontrados.
    */
-  public getAll(): Promise<User[]> {
+  public async getAll(): Promise<User[]> {
+    this.validateConnection();
     console.log("Obteniendo todos los usuarios");
-    // Implementation for getting all users
-    const users: User[] = [];
-    return Promise.resolve(users);
+    return await this.repository.find();
   }
 
   /**
@@ -63,11 +69,10 @@ export class UserRepository implements IUserRepository {
    * @param {string | number} id - Identificador único del usuario a buscar.
    * @returns {Promise<User | null>} Una promesa que resuelve con el usuario encontrado o null si no existe.
    */
-  public getById(id: string | number): Promise<User | null> {
+  public async getById(id: string): Promise<User | null> {
+    this.validateConnection();
     console.log("Obteniendo usuario por ID:", id);
-    // Implementation for getting a user by ID
-    const user = new User("John Doe", "mail@mail.com");
-    return Promise.resolve(user);
+    return this.repository.findOneBy({ id });
   }
 
   /**
@@ -75,11 +80,10 @@ export class UserRepository implements IUserRepository {
    * @param {string} email - Correo electrónico del usuario a buscar.
    * @returns {Promise<User | null>} Una promesa que resuelve con el usuario encontrado o null si no existe.
    */
-  public getByEmail(email: string): Promise<User | null> {
+  public async getByEmail(email: string): Promise<User | null> {
+    this.validateConnection();
     console.log("Obteniendo usuario por email:", email);
-    // Implementation for getting a user by email
-    const user = new User("John Doe", email);
-    return Promise.resolve(user);
+    return await this.repository.findOne({ where: { email: email } });
   }
 
   /**
@@ -87,22 +91,16 @@ export class UserRepository implements IUserRepository {
    * @param {string} name - Nombre del usuario a buscar.
    * @returns {Promise<User | null>} Una promesa que resuelve con el usuario encontrado o null si no existe.
    */
-  public getByName(name: string): Promise<User | null> {
+  public async getByName(name: string): Promise<User[] | null> {
+    this.validateConnection();
     console.log("Obteniendo usuario por nombre:", name);
-    // Implementation for getting a user by name
-    const user = new User(name, "mail@mail.com");
-    return Promise.resolve(user);
+    return await this.repository.find({ where: { name: name} });
   }
 
   /**
-   * Obtiene todos los libros actualmente prestados por un usuario específico.
-   * @param {string} userId - Identificador único del usuario.
-   * @returns {Promise<User[]>} Una promesa que resuelve con un arreglo de usuarios que tienen libros prestados (puede incluir detalles de los libros).
+   * Valida que exista conexión a la base de datos
    */
-  public getBorrowBooksByUserId(userId: string): Promise<User[]> {
-    console.log("Obteniendo libros prestados al user ID:", userId);
-    // Implementation for getting borrowed books by user ID
-    const users: User[] = [];
-    return Promise.resolve(users);
+  private validateConnection(){
+     if (!this.connection) throw new Error("No hay conexión a la base de datos");
   }
 }

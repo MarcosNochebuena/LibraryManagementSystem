@@ -42,4 +42,3 @@ export interface ILoanRepository extends IBaseRepository<Loan> {
    */
   findLoansByReturnDate(returnDate: Date): Promise<Loan[]>;
 }
-

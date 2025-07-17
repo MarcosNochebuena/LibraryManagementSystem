@@ -6,7 +6,7 @@ import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Column } from "t
 @Entity()
 export class Loan {
   @PrimaryGeneratedColumn('uuid')
-  private readonly id: string;
+  public readonly id: string;
   @ManyToOne(() => Book, book => book.loans, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'book_id' })
   @IsNotEmpty()

@@ -33,5 +33,11 @@ export interface IBookRepository extends IBaseRepository<Book> {
    * @returns {Promise<Book[]>} Una promesa que resuelve con un arreglo de libros publicados en el año indicado.
    */
   getBooksByYear(year: number): Promise<Book[]>;
-}
 
+  /**
+   * Obtiene todos los libros actualmente prestados por un usuario específico.
+   * @param {string} userId - Identificador único del usuario.
+   * @returns {Promise<User[]>} Una promesa que resuelve con un arreglo de usuarios que tienen libros prestados (puede incluir detalles de los libros).
+   */
+  getBorrowBooksByUserId(userId: string): Promise<Book[]>;
+}
